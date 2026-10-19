@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materi Kelas | KAND Academy</title>
+<meta name="description" content="Semua materi kelas KAND Academy dalam satu daftar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#3b1a6b; --muted:#6b5a85; --card:rgba(255,255,255,.86); --accent:#6d4ab5; --mint:#bdf0d3; --cream:#f3e7d0; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:0 14px 56px; color:var(--ink); font-family:"Josefin Sans",system-ui,sans-serif;
+    background:linear-gradient(135deg,#dcd0ff 0%,#f6efff 45%,#f7c9e4 100%) fixed; min-height:100vh; }
+  main { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:34px 0 14px; }
+  h1 { margin:0 0 6px; font-size:1.8rem; }
+  header p { margin:0; color:var(--muted); }
+  .back { display:inline-block; margin-top:12px; color:var(--accent); font-weight:600; text-decoration:none; }
+  .search { width:100%; margin:14px 0 4px; padding:13px 16px; border:0; border-radius:999px; font:inherit; font-size:1rem;
+    background:var(--card); color:var(--ink); box-shadow:0 2px 10px rgba(80,40,140,.08); }
+  .search:focus { outline:2px solid var(--accent); }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:12px 0; }
+  .chip { border:0; border-radius:999px; padding:8px 16px; cursor:pointer; background:var(--card); color:var(--ink); font:inherit; font-weight:600; }
+  .chip[aria-pressed="true"] { background:var(--accent); color:#fff; }
+  .kelas { margin-top:18px; }
+  .kelas h2 { font-size:1.15rem; margin:0 0 8px 4px; }
+  details { background:var(--card); border-radius:18px; margin-bottom:10px; box-shadow:0 4px 14px rgba(80,40,140,.08); overflow:hidden; }
+  summary { cursor:pointer; list-style:none; padding:14px 18px; font-weight:700; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  summary::-webkit-details-marker { display:none; }
+  summary::after { content:"▾"; color:var(--accent); transition:transform .15s; }
+  details[open] summary::after { transform:rotate(180deg); }
+  .count { font-weight:400; color:var(--muted); font-size:.85rem; margin-left:8px; }
+  ul { list-style:none; margin:0; padding:0 8px 8px; }
+  li { margin:0; }
+  .row { display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:12px; text-decoration:none; color:var(--ink); }
+  a.row:hover, a.row:focus-visible { background:rgba(109,74,181,.08); outline:none; }
+  .row.soon { color:var(--muted); }
+  .ico { flex:0 0 38px; height:38px; border-radius:11px; display:grid; place-items:center; font-size:1.2rem; background:var(--mint); }
+  .row.soon .ico { background:var(--cream); }
+  .txt { flex:1; min-width:0; }
+  .judul { display:block; font-weight:600; overflow-wrap:anywhere; }
+  .sub { display:block; font-size:.82rem; color:var(--muted); overflow-wrap:anywhere; }
+  .go { color:var(--accent); font-weight:700; }
+  .state { text-align:center; color:var(--muted); padding:28px 0; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Materi Kelas</h1>
+    <p>Semua materi KAND Academy dalam satu daftar.</p>
+    <a class="back" href="https://s.id/kandacademy-jru">&larr; Kembali ke menu</a>
+  </header>
+
+  <input class="search" id="q" type="search" placeholder="Cari materi…" aria-label="Cari materi" autocomplete="off">
+  <div class="chips" id="chips" role="group" aria-label="Filter kelas"></div>
+  <div id="out"><div class="state">Memuat…</div></div>
+</main>
+
+<script>
+  // Link CSV dari Sheet "Katalog Materi KAND Academy" (dipublikasikan ke web). Isinya hanya judul dan link file publik.
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQjJYIAb243prBEUsICxu3ZYVCLB0JhTleP6nQ-vEqypRl8xgDLZvyANlNjDeajsRHo9XxHXLQ7021r/pub?output=csv";
+
+  const $ = (id) => document.getElementById(id);
+  let rows = [];
+  let activeGroup = new URLSearchParams(location.search).get("kelas") || "";
+
+  function parseCSV(text) {
+    const out = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i+1] === "\n") i++; row.push(cell); cell = ""; if (row.some((x) => x.trim())) out.push(row); row = []; }
+      else cell += c;
+    }
+    row.push(cell); if (row.some((x) => x.trim())) out.push(row);
+    return out;
+  }
+
+  const safeLink = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : ""; } catch { return ""; } };
+  const groupOf = (kelas) => kelas.split(" - ")[0].trim();
+  const iconOf = (r) => !r.link ? "⏳" : /pdf/i.test(r.jenis) ? "📄" : /dok|doc/i.test(r.jenis) ? "📝" : /sheet|xls/i.test(r.jenis) ? "📊" : /video/i.test(r.jenis) ? "🎬" : "🔗";
+
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function render() {
+    const term = $("q").value.trim().toLowerCase();
+    const shown = rows.filter((r) =>
+      (!activeGroup || groupOf(r.kelas).toLowerCase() === activeGroup.toLowerCase()) &&
+      (!term || [r.kelas, r.sesi, r.kelompok, r.judul, r.keterangan].join(" ").toLowerCase().includes(term)));
+    const out = $("out"); out.replaceChildren();
+    if (!shown.length) { out.append(el("div", "state", "Tidak ada materi yang cocok.")); return; }
+
+    const byKelas = new Map();
+    for (const r of shown) { if (!byKelas.has(r.kelas)) byKelas.set(r.kelas, new Map()); const m = byKelas.get(r.kelas); const k = r.sesi || "Materi"; if (!m.has(k)) m.set(k, []); m.get(k).push(r); }
+
+    for (const [kelas, sesiMap] of byKelas) {
+      const sec = el("section", "kelas"); sec.append(el("h2", "", kelas));
+      for (const [sesi, items] of sesiMap) {
+        const d = document.createElement("details"); d.open = !!(term || activeGroup || byKelas.size === 1) || items.some((i) => i.link);
+        const s = document.createElement("summary"); s.append(document.createTextNode(sesi));
+        s.append(el("span", "count", items.length + " item")); d.append(s);
+        const ul = document.createElement("ul");
+        for (const r of items) {
+          const li = document.createElement("li"); const href = safeLink(r.link);
+          const row = href ? el("a", "row") : el("div", "row soon");
+          if (href) { row.href = href; row.target = "_blank"; row.rel = "noopener noreferrer"; }
+          row.append(el("span", "ico", iconOf(r)));
+          const t = el("span", "txt"); t.append(el("span", "judul", r.judul));
+          const meta = [r.kelompok, r.jenis, href ? "" : (r.keterangan || "Segera hadir")].filter(Boolean).join(" · ");
+          if (meta) t.append(el("span", "sub", meta));
+          if (href && r.keterangan) t.append(el("span", "sub", r.keterangan));
+          row.append(t);
+          if (href) row.append(el("span", "go", "Buka"));
+          li.append(row); ul.append(li);
+        }
+        d.append(ul); sec.append(d);
+      }
+      out.append(sec);
+    }
+  }
+
+  function renderChips() {
+    const box = $("chips"); box.replaceChildren();
+    const groups = ["", ...new Set(rows.map((r) => groupOf(r.kelas)))];
+    if (groups.length < 3) return;
+    for (const g of groups) {
+      const b = el("button", "chip", g || "Semua"); b.type = "button";
+      b.setAttribute("aria-pressed", String(g.toLowerCase() === activeGroup.toLowerCase()));
+      b.onclick = () => { activeGroup = g; renderChips(); render(); };
+      box.append(b);
+    }
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(CSV_URL, { cache: "no-store" }); if (!res.ok) throw new Error(res.status);
+      const data = parseCSV(await res.text()); const head = data.shift().map((h) => h.trim().toLowerCase());
+      const ix = (n) => head.indexOf(n);
+      const g = (r, n) => (r[ix(n)] || "").trim();
+      rows = data.map((r) => ({ kelas: g(r,"kelas"), sesi: g(r,"sesi"), kelompok: g(r,"kelompok"), judul: g(r,"judul"), jenis: g(r,"jenis"), link: g(r,"link"), keterangan: g(r,"keterangan") }))
+                 .filter((r) => r.kelas && r.judul);
+      renderChips(); render();
+    } catch (e) { $("out").replaceChildren(el("div", "state", "Gagal memuat daftar materi. Coba muat ulang halaman.")); }
+  }
+  $("q").addEventListener("input", render);
+  load();
+</script>
+</body>
+</html>
