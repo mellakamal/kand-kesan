@@ -58,7 +58,7 @@
 <script>
   // GANTI dengan link CSV dari tab "Kesan Publik" (File > Bagikan > Publikasikan ke web > pilih tab itu > CSV).
   // Jangan pernah memakai link dari tab jawaban mentah.
-  const CSV_URL = "GANTI_DENGAN_LINK_CSV_TAB_KESAN_PUBLIK";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaUnbFMQcw3NaDNkWpOm1HUE-YY29YbkkR31U4wRvzT7Gr7HyGgpFSHVX-TAuSCnfbkX-uYxJ-Mr6n/pub?gid=1119835628GANTI_DENGAN_LINK_CSV_TAB_KESAN_PUBLIKsingle=trueGANTI_DENGAN_LINK_CSV_TAB_KESAN_PUBLIKoutput=csv";
 
   const $ = (id) => document.getElementById(id);
   let rows = [];
@@ -125,7 +125,7 @@
   }
 
   async function load() {
-    if (CSV_URL.startsWith("GANTI_")) {
+    if (!CSV_URL || CSV_URL.startsWith("GANTI_")) {
       $("list").innerHTML = '<div class="state">Link CSV belum diisi.</div>'; return;
     }
     try {
