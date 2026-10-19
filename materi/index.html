@@ -82,7 +82,7 @@
 
   const safeLink = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : ""; } catch { return ""; } };
   const groupOf = (kelas) => kelas.split(" - ")[0].trim();
-  const iconOf = (r) => !r.link ? "⏳" : /pdf/i.test(r.jenis) ? "📄" : /dok|doc/i.test(r.jenis) ? "📝" : /sheet|xls/i.test(r.jenis) ? "📊" : /video/i.test(r.jenis) ? "🎬" : "🔗";
+  const iconOf = (r) => !r.link ? "⏳" : /pdf/i.test(r.jenis) ? "📄" : /dok|doc/i.test(r.jenis) ? "📝" : /sheet|xls/i.test(r.jenis) ? "📊" : /video/i.test(r.jenis) ? "🎬" : /form/i.test(r.jenis) ? "✏️" : "🔗";
 
   function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
