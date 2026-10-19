@@ -114,7 +114,7 @@
           if (meta) t.append(el("span", "sub", meta));
           if (href && r.keterangan) t.append(el("span", "sub", r.keterangan));
           row.append(t);
-          if (href) row.append(el("span", "go", "Buka"));
+          if (href) row.append(el("span", "go", /form/i.test(r.jenis) ? "Isi form" : "Buka"));
           li.append(row); ul.append(li);
         }
         d.append(ul); sec.append(d);
